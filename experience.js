@@ -185,6 +185,21 @@ function observation(){
  chapters.forEach(ch=>observer.observe(ch,{attributes:true,attributeFilter:["class"]}));
  setShards();
 }
+function buildSkip(){
+ const game=document.querySelector("#ch8 .panel");
+ if(!game)return;
+ const button=document.createElement("button");
+ button.type="button";button.className="btn ghost small";button.style.cssText="margin-top:14px;font-size:.86rem";
+ button.textContent="فقط نامه و شعر آخر را می‌خواهم";
+ button.setAttribute("aria-label","رد کردن بازی زمان‌دار و باز کردن شعر");
+ button.addEventListener("click",()=>{
+  const poem=$("tap-poem");if(poem)poem.classList.add("show");
+  if(typeof window.reyhanehComplete==="function")window.reyhanehComplete(8);
+  announce("برای رسیدن به نامه آخر، نیازی نیست رکورد بزنی ♥");
+ });
+ game.append(button);
+}
+buildSkip();
 buildProgress();
 buildChapterNotes();
 buildVault();
