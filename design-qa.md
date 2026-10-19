@@ -58,3 +58,21 @@ P3: generated transparent objects can show a faint edge at magnification; normal
 final result: passed
 
 Post-fix gates passed: compass-label capture, complete timed round, and legacy-only progress restoration after clearing isolated preview state. The legacy test restored 10/10 flowers, 7/7 lanterns and the unlocked final letter. A final production smoke test follows deployment; hardware/OS-specific test gaps above remain explicit.
+
+## Motion restoration and invitation fix — v4.1, 2026-10-19
+
+User correction: the first envelope was a static image while only the separate CTA worked. Earlier optimization had also removed important ambient and tactile motion, and saved completion made several interactions inert.
+
+Changes:
+- Both invitation envelope and CTA use the same guarded entry handler. The actual envelope is an accessible button. Native paper layers restore a hinged flap, disappearing seal and sliding note; chapter two also opens before its fixed-height reader appears.
+- Heartbeat, visibly rising heart fill, touch bursts, drifting petals, flower growth and breeze, twinkling stars and floating, flickering lanterns restored. Repeated lantern taps respond visually. Wheel, compass and falling-heart game retained.
+- Completed heart can be held again; explicit replay control also provided. Garden can be replanted; garden taps place flowers near the selected location. Scratch card can be covered and scratched again. Saved story completion remains intact during replay.
+- Existing flowers are preserved when another is planted, avoiding restarting every bloom. CSS ambience pauses when its section is offscreen or the tab is hidden. Reduced-motion styles remain available. Effects are bounded and burst nodes clean themselves up.
+
+Evidence: same-origin temporary `motion-preview/qa.html` in the cloud browser, using real 320, 360, 390 and 430 CSS-pixel viewport widths. The 320px check caught an intrinsic grid-width problem introduced by the envelope ratio; min-width and minimum-height constraints were corrected. Recheck: content and envelope fit all four widths; observed horizontal overflow was zero. This is viewport testing, not physical phone testing.
+
+Interactions exercised: direct envelope entry; separate CTA entry; fresh and saved-progress invitations; real 2.9s pointer hold to complete the heart; heart reset; ten flowers, garden reset and direct garden touch (new flower left position 73.1772%); computed flower breeze animation running in view; 27-letter reader open and next; all seven lanterns lit and 16 twinkling stars present; scratch reveal, replay, real drag to 14% and resize retaining paths; wheel spin/result; compass spin/result; rain start and skip, zero remaining heart nodes. Heart animation observed `none` after leaving its section. No site warnings/errors observed; browser-extension metadata errors excluded.
+
+Entry animation class and flap/note transition styles were observed in the browser; invitation removed after entry and destination remained interactive. Screenshot captures were visually inspected. No Lighthouse, FPS, hardware performance, Safari or physical touch-device claim is made. Audio/photo controls were not retested in this focused correction.
+
+Result: passed for the scope above. Temporary preview folder is removed with release; root retains the normal production storage keys, with no test prefix.

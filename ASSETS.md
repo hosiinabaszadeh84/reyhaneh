@@ -14,3 +14,5 @@ The following project assets were generated with the built-in image-generation t
 | compass-case.webp | 650 × 650 | Perfectly top-down brass compass case, thick polished rim and blank midnight-blue dial, subtle peripheral ticks, transparent exterior; no needle, lettering or symbols. Needle and labels use the site's existing native vector system. |
 
 Vazirmatn: rastikerdar/vazirmatn, SIL OFL. Noto Naskh Arabic: google/fonts, SIL OFL. Lucide: installed distribution, ISC. Full license texts accompany the assets.
+
+The invitation and chapter-two envelopes now use layered native CSS paper geometry for an actual hinged flap and sliding letter. The generated envelope WebP is retained in the repository as an optional visual asset, but is not requested by the page.
