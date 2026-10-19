@@ -1,210 +1,110 @@
-/* Reyhaneh: interactive storybook additions; no external services. */
-(function(){
-"use strict";
-const KEY="reyhaneh.v2.progress", VAULT="reyhaneh.v2.vault", SOUND="reyhaneh.v2.sound";
-const $=id=>document.getElementById(id);
-const fa=n=>String(n).replace(/[0-9]/g,d=>"۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
-const safeGet=(k,f)=>{try{return JSON.parse(localStorage.getItem(k))??f}catch(_){return f}};
-const safeSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(_){return false}};
-const chapters=[...document.querySelectorAll(".chapter[data-chapter]")].filter(s=>/^ch[1-8]$/.test(s.id));
-let soundOn=safeGet(SOUND,false), audioContext=null, toastTimer;
-function sound(type="pop"){
- if(!soundOn)return;
- try{
-  const AC=window.AudioContext||window.webkitAudioContext;
-  if(!AC)return;
-  audioContext ||= new AC();
-  if(audioContext.state==="suspended")audioContext.resume();
-  const t=audioContext.currentTime;
-  const seq=type==="win"?[523.25,659.25,783.99,1046.5]:type==="open"?[392,587.3,783.99]:[660,880];
-  seq.forEach((f,i)=>{
-   const osc=audioContext.createOscillator(),gain=audioContext.createGain(),s=t+i*.095;
-   osc.type="sine";osc.frequency.setValueAtTime(f,s);
-   gain.gain.setValueAtTime(0,s);gain.gain.linearRampToValueAtTime(.035,s+.012);
-   gain.gain.exponentialRampToValueAtTime(.001,s+.18);
-   osc.connect(gain);gain.connect(audioContext.destination);
-   osc.start(s);osc.stop(s+.20);
-  });
- }catch(_){}
+/* Reyhaneh · mobile-first story. No services, tracking, or external dependencies. */
+(() => {
+'use strict';
+const $=id=>document.getElementById(id), $$=s=>[...document.querySelectorAll(s)];
+const FA='۰۱۲۳۴۵۶۷۸۹', fa=n=>String(n).replace(/\d/g,d=>FA[+d]);
+const KEY='reyhaneh.v2.progress', STATE='reyhaneh.v4.state', VAULT='reyhaneh.v2.vault', SOUND='reyhaneh.v2.sound';
+const prefix=window.__storagePrefix||'';
+const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(prefix+key))??fallback}catch{return fallback}};
+const write=(key,value)=>{try{localStorage.setItem(prefix+key,JSON.stringify(value));return true}catch{return false}};
+const motion=matchMedia('(prefers-reduced-motion: reduce)');
+const validSaved=read(KEY,[]), done=new Set(Array.isArray(validSaved)?validSaved.filter(n=>Number.isInteger(n)&&n>0&&n<9):[]);
+const rawState=read(STATE,{}), state=rawState&&typeof rawState==='object'&&!Array.isArray(rawState)?rawState:{};
+const persist=()=>write(STATE,state);
+const titles=['قلبم، پیشِ توست','چند خط، فقط برای تو','تو، به هزار نام','تو آمدی، بهار شد','روشنیِ شب‌های من','یک قول، زیرِ غبار','هر راه، به تو می‌رسد','این بار، دلم را بگیر'];
+const icon=name=>`<svg class="icon" aria-hidden="true"><use href="assets/icons.svg#${name}"></use></svg>`;
+let activeChapter=0, soundOn=read(SOUND,false)===true, audioContext, toastTimer;
+function toast(text){$('story-toast').textContent=text;$('story-toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('story-toast').classList.remove('visible'),2500)}
+function sound(win=false){if(!soundOn)return;try{audioContext??=new (window.AudioContext||window.webkitAudioContext)();if(audioContext.state==='suspended')audioContext.resume();[392,win?587:494,win?784:587].forEach((f,i)=>{const t=audioContext.currentTime+i*.085,o=audioContext.createOscillator(),g=audioContext.createGain();o.frequency.value=f;g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(.025,t+.015);g.gain.exponentialRampToValueAtTime(.001,t+.24);o.connect(g);g.connect(audioContext.destination);o.start(t);o.stop(t+.25)})}catch{}}
+function soundLabel(){const b=$('sound-toggle');b.setAttribute('aria-pressed',String(soundOn));b.setAttribute('aria-label',soundOn?'خاموش کردن صدای افکت‌ها':'روشن کردن صدای افکت‌ها');b.innerHTML=icon(soundOn?'Volume2':'VolumeX')}
+soundLabel();$('sound-toggle').addEventListener('click',()=>{soundOn=!soundOn;write(SOUND,soundOn);soundLabel();sound()});
+function journeyLinks(){const root=$('journey-links');root.replaceChildren();titles.forEach((title,i)=>{const a=document.createElement('a');a.href='#ch'+(i+1);a.className=activeChapter===i+1?'is-current':'';a.innerHTML=`<span>${fa(i+1)}</span><span>${title}</span>${icon(done.has(i+1)?'Check':'ArrowLeft')}`;if(done.has(i+1))a.setAttribute('aria-label',title+'؛ کامل شده');root.append(a)})}
+function syncJourney(){
+ $$('[data-chapter]').forEach(section=>{const complete=done.has(+section.dataset.chapter);section.classList.toggle('done',complete);const v=section.querySelector('.revelation .verse');if(v)v.hidden=!complete});
+ $('progress-count').textContent=fa(done.size)+' از ۸';$('progress-fill').style.width=(done.size/8*100)+'%';
+ document.body.classList.toggle('journey-complete',done.size===8);$('finale-lock').hidden=done.size===8;$('finale-letter').hidden=done.size!==8;$('memory-vault').hidden=done.size!==8;
+ const missing=[1,2,3,4,5,6,7,8].find(n=>!done.has(n));
+ $('remaining-text').textContent=fa(8-done.size)+' تکهٔ دیگر مانده؛ دنبالش برویم؟';$('next-missing').href='#ch'+(missing||1);journeyLinks();
 }
-function announce(message){
- let el=$("story-toast");
- if(!el){el=document.createElement("div");el.id="story-toast";el.className="story-toast";el.setAttribute("role","status");document.body.append(el)}
- el.textContent=message;el.classList.add("visible");clearTimeout(toastTimer);
- toastTimer=setTimeout(()=>el.classList.remove("visible"),3200);
-}
-function escapeHTML(s){return String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
-function getDone(){return chapters.filter(ch=>ch.classList.contains("done")).map(ch=>Number(ch.dataset.chapter))}
-function setShards(){
- const done=getDone(),all=done.length===8;
- document.querySelectorAll(".story-shard").forEach((node,i)=>node.classList.toggle("collected",done.includes(i+1)));
- document.body.classList.toggle("journey-complete",all);
- const lock=$("finale-lock");if(lock){const p=lock.querySelector("[data-left]");if(p)p.textContent=all?"":fa(8-done.length)+" تکه دیگر مانده تا قلب ما کامل شود."}
- if(all&&!sessionStorage.getItem("reyhaneh.finale.celebrated")){
-  sessionStorage.setItem("reyhaneh.finale.celebrated","1");
-  sound("win");
- }
- const vault=$("memory-vault");if(vault && all && !vault.dataset.rendered){vault.dataset.rendered="1";renderVault()}
-}
-function buildProgress(){
- const bar=document.querySelector(".progress-wrap");
- if(!bar)return;
- const shards=document.createElement("div");shards.className="story-shards";shards.setAttribute("aria-label","هشت تکه قلب سفر");
- for(let i=0;i<8;i++){const diamond=document.createElement("span");diamond.className="story-shard";diamond.title="مرحله "+fa(i+1);shards.append(diamond)}
- bar.append(shards);
-}
-function buildIntro(){
- const el=document.createElement("div");
- el.id="story-intro";
- el.setAttribute("role","dialog");el.setAttribute("aria-modal","true");el.setAttribute("aria-labelledby","intro-title");
- el.innerHTML='<div class="intro-content"><p class="intro-overline">یک قصه، فقط برای تو</p><h2 id="intro-title">ریحانه، یه نامه داری...</h2><p class="intro-sub">بعضی حرف‌ها را نمی‌شود فقط گفت؛<br>باید با دست‌های خودت کشفشان کنی.</p><div class="intro-envelope" aria-hidden="true"><div class="back"></div><div class="letter">برای ریحانه‌ام ♥</div><div class="front"></div><div class="flap"></div><div class="seal">♥</div></div><button class="intro-start" id="intro-start" type="button">مُهر نامه را باز کن ✦</button><p class="intro-foot">هشت کشف کوچک، یک حرف بزرگ</p></div>';
- document.body.prepend(el);
- document.body.classList.add("intro-visible");
- const button=$("intro-start");
- button.addEventListener("click",()=>{
-  button.disabled=true;el.classList.add("opening");sound("open");
-  setTimeout(()=>{el.classList.add("leaving");document.body.classList.remove("intro-visible");setTimeout(()=>el.remove(),900);},950);
- });
- button.focus({preventScroll:true});
-}
-function buildChapterNotes(){
- const hints=[
- ["اولین تکه","گاهی یک لمس کوچک، آغاز همه‌چیز است."],
- ["دومین تکه","حرف‌های دوست‌داشتنی همیشه در یک نامه جا نمی‌شوند."],
- ["سومین تکه","نام‌هایی که فقط میان ما معنی پیدا می‌کنند."],
- ["چهارمین تکه","از یک گل شروع کن، تا یک باغ بسازیم."],
- ["پنجمین تکه","بعضی روشنایی‌ها را فقط یک نفر به زندگی می‌آورد."],
- ["ششمین تکه","ارزشمندترین قول‌ها زیر گردوغبار زمان هم می‌مانند."],
- ["هفتمین تکه","هر راهی که برویم، مهم این است که کنار هم باشیم."],
- ["هشتمین تکه","آخرین قطعه قلب، فقط یک بازی دیگر فاصله دارد."]
- ];
- chapters.forEach((ch,i)=>{
-  const head=ch.querySelector(".chapter-head");if(!head)return;
-  const eyebrow=document.createElement("p");eyebrow.className="story-eyebrow";eyebrow.textContent="فصل "+fa(i+1)+" از هشت · "+hints[i][0];head.prepend(eyebrow);
-  const note=document.createElement("span");note.className="story-note";note.textContent=hints[i][1];head.append(note);
- });
- const finale=$("finale");if(!finale)return;
- const lead=finale.querySelector(".lead");
- if(lead)lead.textContent="تمام تکه‌های قلب را پیدا کن تا نامه آخر باز شود.";
- const lock=document.createElement("div");lock.className="finale-lock";lock.id="finale-lock";
- lock.innerHTML='<span class="finale-lock-icon" aria-hidden="true">♡</span><h3>آخرین نامه هنوز مُهر شده...</h3><p data-left>هشت تکه قلب تا این لحظه پنهان مانده است.</p><p>هر مرحله را که تمام کنی، یک تکه قلب به این نامه برمی‌گردد.</p><a class="btn small" href="#ch1">برگرد به ابتدای قصه</a>';
- const surprise=document.createElement("div");surprise.className="final-reveal";
- surprise.innerHTML='<span class="shard-heart" aria-hidden="true">♥</span><h3>هشت تکه، یک قلب...</h3><p>و این همه فقط بهانه بود تا باز یک‌بار دیگر بگویم:<br><strong>ریحانه، خوشحالم که هم‌سفر زندگی منی.</strong></p><p class="audio-help">اگر حسین یک پیام صوتی اضافه کرده باشد، اینجا شنیده می‌شود.</p><audio class="voice-player" id="voice-player" controls preload="none" hidden></audio><label class="voice-local-label" for="voice-local">پیام صوتی خصوصی را فقط روی همین دستگاه انتخاب کن <input id="voice-local" type="file" accept="audio/*"></label>';
- finale.querySelector(".chapter-head").after(lock,surprise);
- const voice=$("voice-local");
- voice.addEventListener("change",()=>{
-  const f=voice.files?.[0];if(!f)return;
-  const player=$("voice-player");if(player.dataset.url)URL.revokeObjectURL(player.dataset.url);
-  player.dataset.url=URL.createObjectURL(f);player.src=player.dataset.url;player.hidden=false;
-  announce("پیام صوتی آماده است؛ فقط در همین بازدید پخش می‌شود.");
- });
- const ghost=finale.querySelector(".chapter-head .done-badge");if(ghost)ghost.textContent="هشت تکه کامل شد ♥";
-}
-function buildSound(){
- const b=document.createElement("button");b.type="button";b.className="sound-toggle";b.id="sound-toggle";
- b.setAttribute("aria-pressed",String(soundOn));b.setAttribute("aria-label","روشن یا خاموش کردن افکت صوتی");
- function label(){b.textContent=soundOn?"♫ صدای افکت‌ها روشن":"♫ صدای افکت‌ها خاموش"}
- label();b.onclick=()=>{soundOn=!soundOn;safeSet(SOUND,soundOn);b.setAttribute("aria-pressed",String(soundOn));label();if(soundOn)sound("open")};
- document.body.append(b);
-}
-function vaultRecords(){const items=safeGet(VAULT,[]);return Array.isArray(items)?items:[]}
-function buildVault(){
- const sec=document.createElement("section");sec.id="memory-vault";
- sec.innerHTML='<div class="vault-shell"><div class="vault-top"><span class="icon" aria-hidden="true">✦</span><h2>صندوقچه خاطرات ما</h2><p>این قصه قرار نیست همین‌جا تمام شود. اینجا می‌شود لحظه‌های قشنگ را نگه داشت؛ حتی نامه‌هایی برای روزهای آینده.</p></div><div class="vault-grid"><form class="vault-form" id="vault-form"><h3>یک یادگاری تازه بساز</h3><label>نام خاطره<input id="vault-title" maxlength="65" placeholder="مثلاً: روزی که..." required></label><label>حرفی که می‌خواهی بماند<textarea id="vault-body" maxlength="1200" required placeholder="یک جمله واقعی از قلبت..."></textarea></label><label>عکس کوچک (اختیاری)<input id="vault-photo" type="file" accept="image/*"></label><label>تاریخ بازشدن نامه (اختیاری)<input id="vault-date" type="date"></label><button class="btn small" type="submit">بگذار توی صندوقچه ♥</button><p class="form-status" id="vault-status" role="status"></p><small>یادگاری‌ها تنها در مرورگر همین دستگاه ذخیره می‌شوند؛ برای اشتراک‌گذاری یا پشتیبان‌گیری مناسب نیستند. تاریخ قفل امنیتی نیست.</small></form><div class="vault-list-wrap"><h3>خاطره‌های نگه‌داشته‌شده</h3><div id="vault-items" class="vault-items"></div></div></div><p class="vault-privacy">عکس‌ها به سرور فرستاده نمی‌شوند. پاک‌کردن داده‌های مرورگر ممکن است همه یادگاری‌ها را حذف کند.</p></div>';
- $("finale").after(sec);
- $("vault-form").addEventListener("submit",async e=>{
-  e.preventDefault();
-  const title=$("vault-title").value.trim(),body=$("vault-body").value.trim(),date=$("vault-date").value;
-  const status=$("vault-status");
-  if(!title||!body){status.textContent="نام و متن خاطره را بنویس.";return}
-  const items=vaultRecords();if(items.length>=18){status.textContent="صندوقچه فعلاً تا ۱۸ یادگاری جا دارد.";return}
-  let photo="";
-  const file=$("vault-photo").files[0];
-  if(file){
-   if(file.size>8*1024*1024){status.textContent="برای ذخیره محلی، عکسی کوچک‌تر از ۸ مگابایت انتخاب کن.";return}
-   try{
-    photo=await compressImage(file);
-   }catch(_){status.textContent="این عکس در مرورگر قابل پردازش نبود.";return}
-  }
-  items.unshift({id:Date.now()+"-"+Math.random().toString(36).slice(2),title,body,date,photo,created:new Date().toISOString()});
-  if(!safeSet(VAULT,items)){status.textContent="حافظه مرورگر پر است. لطفاً عکس کوچک‌تری انتخاب کن.";return}
-  $("vault-form").reset();status.textContent="یادگاری ذخیره شد ♥";renderVault();sound("win");
- });
- $("vault-items").addEventListener("click",e=>{
-  const button=e.target.closest("button[data-delete]");
-  if(!button)return;
-  const items=vaultRecords().filter(item=>item.id!==button.dataset.delete);
-  if(!window.confirm("این یادگاری از همین مرورگر پاک شود؟"))return;
-  safeSet(VAULT,items);renderVault();
- });
-}
-function compressImage(file){
- return new Promise((resolve,reject)=>{
-  const img=new Image(),url=URL.createObjectURL(file);
-  img.onload=()=>{
-   try{
-    const c=document.createElement("canvas"),k=Math.min(1,800/Math.max(img.naturalWidth,img.naturalHeight));
-    c.width=Math.max(1,Math.round(img.naturalWidth*k));c.height=Math.max(1,Math.round(img.naturalHeight*k));
-    c.getContext("2d").drawImage(img,0,0,c.width,c.height);
-    const str=c.toDataURL("image/jpeg",.66);
-    URL.revokeObjectURL(url);resolve(str);
-   }catch(e){URL.revokeObjectURL(url);reject(e)}
-  };
-  img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error("invalid image"))};
-  img.src=url;
- });
-}
-function renderVault(){
- const root=$("vault-items");if(!root)return;
- const items=vaultRecords();root.replaceChildren();
- if(!items.length){const p=document.createElement("p");p.className="vault-empty";p.textContent="هنوز چیزی اینجا نیست. شاید اولین خاطره را امروز بنویسیم؟";root.append(p);return}
- const now=new Date().toISOString().slice(0,10);
- items.forEach(item=>{
-  const locked=item.date&&item.date>now;
-  const div=document.createElement("article");div.className="vault-item"+(locked?" is-locked":"");
-  const title=document.createElement("h4");title.textContent=locked?"🔒 یک نامه برای روز "+item.date:item.title;div.append(title);
-  const meta=document.createElement("div");meta.className="vault-date";meta.textContent=locked?"هنوز زمان بازشدنش نرسیده است":new Date(item.created||Date.now()).toLocaleDateString("fa-IR");div.append(meta);
-  if(!locked){
-   const p=document.createElement("p");p.textContent=item.body;div.append(p);
-   if(item.photo&&/^data:image\/(jpeg|png|webp);base64,/.test(item.photo)){const img=new Image();img.src=item.photo;img.alt="عکس همراه خاطره";img.loading="lazy";div.append(img)}
-  }
-  const del=document.createElement("button");del.type="button";del.className="vault-delete";del.dataset.delete=item.id;del.textContent="حذف یادگاری";div.append(del);root.append(div);
- });
-}
-function observation(){
- const observer=new MutationObserver(()=>{
-  const done=getDone();
-  const old=safeGet(KEY,[]);
-  if(done.length && JSON.stringify(done)!==JSON.stringify(old)){
-   safeSet(KEY,done);
-   const added=done.filter(id=>!old.includes(id));
-   if(added.length){const id=added.at(-1);announce("تکه "+fa(id)+" از هشت پیدا شد ✦");sound(done.length===8?"win":"pop")}
-  }
-  setShards();
- });
- chapters.forEach(ch=>observer.observe(ch,{attributes:true,attributeFilter:["class"]}));
- setShards();
-}
-function buildSkip(){
- const game=document.querySelector("#ch8 .panel");
- if(!game)return;
- const button=document.createElement("button");
- button.type="button";button.className="btn ghost small";button.style.cssText="margin-top:14px;font-size:.86rem";
- button.textContent="فقط نامه و شعر آخر را می‌خواهم";
- button.setAttribute("aria-label","رد کردن بازی زمان‌دار و باز کردن شعر");
- button.addEventListener("click",()=>{
-  const poem=$("tap-poem");if(poem)poem.classList.add("show");
-  if(typeof window.reyhanehComplete==="function")window.reyhanehComplete(8);
-  announce("برای رسیدن به نامه آخر، نیازی نیست رکورد بزنی ♥");
- });
- game.append(button);
-}
-buildSkip();
-buildProgress();
-buildChapterNotes();
-buildVault();
-buildSound();
-observation();
-if(!location.hash || location.hash==="#ch1") buildIntro();
-/* Restoring progress is handled by the original game's completion state hydration. */
+function complete(n){if(done.has(n))return;done.add(n);write(KEY,[...done].sort());syncJourney();toast(done.size===8?'قلبمان کامل شد؛ نامهٔ آخر منتظر توست.':'تکهٔ '+fa(n)+' پیدا شد.');sound(done.size===8);if(navigator.vibrate)navigator.vibrate(20)}
+syncJourney();
+const dialog=$('journey-dialog');$('journey-open').addEventListener('click',()=>{journeyLinks();dialog.showModal()});$('journey-close').addEventListener('click',()=>dialog.close());
+$('journey-links').addEventListener('click',e=>{if(e.target.closest('a'))dialog.close()});dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close()}});
+function navigate(hash){const target=document.getElementById(hash.replace('#',''));if(!target)return;history.replaceState(null,'',hash);target.scrollIntoView({behavior:motion.matches?'instant':'smooth',block:'start'})}
+document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#"]');if(!a)return;e.preventDefault();navigate(a.getAttribute('href'))});
+const chapterObserver=new IntersectionObserver(entries=>{for(const entry of entries){if(entry.isIntersecting){const n=+entry.target.dataset.chapter;if(activeChapter!==n){activeChapter=n;$('current-label').textContent=fa(n)+' · '+titles[n-1];journeyLinks()}}}},{rootMargin:'-15% 0px -55% 0px',threshold:0});$$('[data-chapter]').forEach(s=>chapterObserver.observe(s));
+/* Avoid initial hash jumps and scrollbar changes; invitation exists before JS. */
+const readyIntro=()=>document.getElementById('story-intro')?.classList.add('intro-ready');
+Promise.all([document.fonts.load('500 42px Naskh'),document.fonts.load('400 14px Vazirmatn')]).then(readyIntro,readyIntro);setTimeout(readyIntro,1800);
+const entry=window.__entryHash||'', entryId=/^#(?:ch[1-8]|finale|memory-vault)$/.test(entry)?entry:'';
+if(done.size)$('intro-start').innerHTML='برگردیم به قصه '+icon('ArrowLeft');
+$('intro-start').addEventListener('click',async()=>{
+ const button=$('intro-start');button.disabled=true;sound();$('story-intro').classList.add('opening');
+ await Promise.race([document.fonts?.ready||Promise.resolve(),new Promise(r=>setTimeout(r,600))]);
+ const missing=[1,2,3,4,5,6,7,8].find(n=>!done.has(n));
+ const target=entryId&&entryId!=='#ch1'?entryId:done.size?'#'+(missing?'ch'+missing:'finale'):'#home';
+ $('story').inert=false;$('story').removeAttribute('aria-hidden');document.body.classList.remove('intro-visible');
+ document.getElementById(target.slice(1))?.scrollIntoView({behavior:'instant',block:'start'});history.replaceState(null,'',target);
+ setTimeout(()=>{const intro=$('story-intro');intro.classList.add('leaving');document.getElementById(target.slice(1))?.setAttribute('tabindex','-1');document.getElementById(target.slice(1))?.focus({preventScroll:true});setTimeout(()=>intro.remove(),motion.matches?30:680)},motion.matches?20:420);
+});
+const heroObserver=new IntersectionObserver(entries=>entries.forEach(e=>e.target.classList.toggle('is-visible',e.isIntersecting&&!document.hidden)),{threshold:.05});heroObserver.observe($('home'));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)$('home').classList.remove('is-visible');else{const r=$('home').getBoundingClientRect();$('home').classList.toggle('is-visible',r.bottom>0&&r.top<innerHeight)}});
+/* Hold heart: animate only during input; elapsed wall time survives slow frames. */
+let holdStart=0, heldLevel=0, holdFrame=0, isHolding=false;
+const heart=$('hold-zone');
+function renderHeart(value){$('heart-fill').setAttribute('y',String(100-value));heart.style.setProperty('--heart-light',String(value/100));$('hold-pct').textContent=done.has(1)?'برای تو':fa(Math.floor(value))+'٪'}
+function finishHeart(){cancelAnimationFrame(holdFrame);isHolding=false;heldLevel=100;heart.classList.remove('holding');complete(1);renderHeart(100);$('hold-hint').textContent='دیدی؟ همین که تو باشی، دلم پُر است.';heart.setAttribute('aria-label','قلب کامل شد؛ این دل پیش تو می‌ماند')}
+function holdTick(){if(!isHolding)return;const value=Math.min(100,heldLevel+(performance.now()-holdStart)/26);renderHeart(value);if(value>=100){finishHeart();return}holdFrame=requestAnimationFrame(holdTick)}
+function pressHeart(e){if(done.has(1)||isHolding)return;if(e)e.preventDefault();isHolding=true;holdStart=performance.now();heart.classList.add('holding');$('hold-hint').textContent='همین‌جا بمان؛ دلم دارد پُر می‌شود.';holdFrame=requestAnimationFrame(holdTick)}
+function releaseHeart(){if(!isHolding)return;heldLevel=Math.min(100,heldLevel+(performance.now()-holdStart)/26);if(heldLevel>=100){finishHeart();return}isHolding=false;cancelAnimationFrame(holdFrame);heart.classList.remove('holding');renderHeart(heldLevel);$('hold-hint').textContent='تا همین‌جا نگهش داشتم؛ دوباره لمسش کن.'}
+heart.addEventListener('pointerdown',e=>{heart.setPointerCapture(e.pointerId);pressHeart(e)});heart.addEventListener('pointerup',releaseHeart);heart.addEventListener('pointercancel',releaseHeart);heart.addEventListener('lostpointercapture',releaseHeart);heart.addEventListener('contextmenu',e=>e.preventDefault());heart.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='Enter')pressHeart(e)});heart.addEventListener('keyup',e=>{if(e.code==='Space'||e.code==='Enter'){e.preventDefault();releaseHeart()}});heart.addEventListener('blur',releaseHeart);if(done.has(1))finishHeart();
+/* Letter reader has a stable frame and no timed scrolling. All 27 verses included. */
+const letters=REYHANEH.letters;let letterIndex=Number.isInteger(state.letterIndex)?Math.max(0,Math.min(letters.length-1,state.letterIndex)):0,letterChanging=false;
+function renderLetter(){const [title,body]=letters[letterIndex];$('letter-title').textContent=title;$('env-msg').textContent=body;$('letter-count').textContent=fa(letterIndex+1)+' / '+fa(letters.length);state.letterIndex=letterIndex;persist()}
+function openLetter(open){$('letter-closed').hidden=open;$('env-reader').hidden=!open;$('envelope').setAttribute('aria-expanded',String(open));if(open){renderLetter();complete(2);$('env-close').focus({preventScroll:true})}else $('envelope').focus({preventScroll:true})}
+$('envelope').addEventListener('click',()=>openLetter(true));$('env-close').addEventListener('click',()=>openLetter(false));
+function changeLetter(dir){if(letterChanging)return;letterChanging=true;$('env-msg').classList.add('changing');setTimeout(()=>{letterIndex=(letterIndex+dir+letters.length)%letters.length;renderLetter();$('env-msg').classList.remove('changing');letterChanging=false},motion.matches?0:150)}
+$('env-next').addEventListener('click',()=>changeLetter(1));$('env-prev').addEventListener('click',()=>changeLetter(-1));renderLetter();
+/* Wheel is the original canvas interaction, with local typography and a new finish. */
+const wheel=$('wheel'), wc=wheel.getContext('2d');let wheelBusy=false, wheelAngle=0;
+function drawWheel(){const R=360,N=REYHANEH.names.length,arc=Math.PI*2/N;wc.clearRect(0,0,720,720);for(let i=0;i<N;i++){const a=i*arc-Math.PI/2;wc.beginPath();wc.moveTo(R,R);wc.arc(R,R,350,a,a+arc);wc.closePath();wc.fillStyle=i%2?'#755164':'#4f354d';wc.fill();wc.strokeStyle='#d3b08b';wc.lineWidth=1.3;wc.stroke();wc.save();wc.translate(R,R);wc.rotate(a+arc/2);wc.textAlign='right';wc.direction='rtl';wc.font='500 29px Vazirmatn';wc.fillStyle='#f3debf';wc.fillText(REYHANEH.names[i],316,9,195);wc.restore()}wc.beginPath();wc.arc(R,R,353,0,Math.PI*2);wc.strokeStyle='#b99b77';wc.lineWidth=7;wc.stroke()}
+function showName(i){$('wheel-name').textContent=REYHANEH.names[i];$('wheel-mean').textContent=REYHANEH.meanings[i]}
+$('wheel-spin').addEventListener('click',async()=>{if(wheelBusy)return;wheelBusy=true;$('wheel-spin').disabled=true;const i=Math.floor(Math.random()*REYHANEH.names.length),target=(360-(i+.5)*360/REYHANEH.names.length+360)%360,end=wheelAngle+5*360+((target-wheelAngle+360)%360);$('wheel-name').textContent='بگذار دلم انتخاب کند…';$('wheel-mean').textContent='هر بار، یک جور دوستت دارم.';const anim=wheel.animate([{transform:`rotate(${wheelAngle}deg)`},{transform:`rotate(${end}deg)`}],{duration:motion.matches?1:3200,easing:'cubic-bezier(.12,.7,.14,1)',fill:'forwards'});await anim.finished;wheelAngle=target;wheel.style.transform=`rotate(${target}deg)`;anim.cancel();showName(i);state.wheelIndex=i;persist();complete(3);wheelBusy=false;$('wheel-spin').disabled=false;$('wheel-spin').innerHTML='یک نامِ دیگر '+icon('RotateCcw')});drawWheel();document.fonts?.ready.then(drawWheel);if(done.has(3)){const i=Number.isInteger(state.wheelIndex)&&state.wheelIndex>=0&&state.wheelIndex<8?state.wheelIndex:0;showName(i);wheelAngle=(360-(i+.5)*45)%360;wheel.style.transform=`rotate(${wheelAngle}deg)`}
+/* Reuse the original vector flower system; stems are anchored to the planting bed. */
+const flowerPositions=Array.from({length:10},(_,i)=>({x:12+i*8.1,y:20+(i%3)*3,scale:.75+(i%4)*.09}));
+let planted=Number.isInteger(state.planted)?Math.max(0,Math.min(10,state.planted)):0;if(done.has(4))planted=10;
+function renderGarden(){const root=$('flowers');root.replaceChildren();for(let i=0;i<planted;i++){const f=document.createElement('div'),p=flowerPositions[i];f.className='flower';f.style.cssText=`left:${p.x}%;bottom:${p.y}%;width:48px;height:113px;scale:${p.scale}`;const rose=new Image();rose.src="assets/rose.webp";rose.alt="";rose.width=201;rose.height=500;f.append(rose);root.append(f)}$('garden-count').textContent=fa(planted)+' از ۱۰ گل';$('plant-flower').innerHTML=(planted>=10?'باغمان شکفت':'یک گل برای تو')+' '+icon(planted>=10?'Check':'Flower2');$('plant-flower').disabled=planted>=10}
+function plant(){if(planted>=10)return;planted++;state.planted=planted;persist();renderGarden();if(planted===10)complete(4);else sound()}
+$('plant-flower').addEventListener('click',plant);$('garden').addEventListener('click',e=>{if(!e.target.closest('button'))plant()});renderGarden();
+/* Seven uniquely-labelled lantern controls, with persistent lit state. */
+let lit=Array.isArray(state.lit)?state.lit.filter((v,i,a)=>Number.isInteger(v)&&v>=0&&v<7&&a.indexOf(v)===i):[];if(done.has(5))lit=[0,1,2,3,4,5,6];
+const positions=[[17,22],[48,18],[81,25],[32,49],[67,52],[19,77],[78,79]];
+const stars=document.createElement('canvas');stars.width=600;stars.height=500;stars.className='sky-stars';stars.setAttribute('aria-hidden','true');const sc=stars.getContext('2d');for(let i=0;i<65;i++){sc.beginPath();sc.arc(Math.random()*600,Math.random()*500,Math.random()*1.2+.35,0,Math.PI*2);sc.fillStyle=`rgba(240,222,188,${Math.random()*.4+.12})`;sc.fill()}$('sky').append(stars);
+function renderLanterns(){$$('#sky .lantern').forEach((b,i)=>{b.classList.toggle('lit',lit.includes(i));b.setAttribute('aria-pressed',String(lit.includes(i)));b.setAttribute('aria-label','فانوس '+fa(i+1)+(lit.includes(i)?'؛ روشن شده':'؛ روشنش کن'))});$('sky-progress').textContent=fa(lit.length)+' از ۷ فانوس روشن'}
+positions.forEach(([x,y],i)=>{const b=document.createElement('button');b.type='button';b.className='lantern';b.style.cssText=`left:${x}%;top:${y}%`;b.innerHTML='<img src="assets/lantern.webp" alt="" width="180" height="270">';b.addEventListener('click',()=>{if(lit.includes(i))return;lit.push(i);state.lit=lit;persist();renderLanterns();if(lit.length===7)complete(5);else sound()});$('sky').append(b)});renderLanterns();
+/* Scratch paths use normalized coordinates, so resizing never replaces progress. */
+const scratch=$('scratch-canvas'), sx=scratch.getContext('2d',{willReadFrequently:true});let scratchPaths=[],currentPath=null,scratchPercent=0,scratchCheck=0;
+function strokePath(path){if(!path.length)return;sx.globalCompositeOperation='destination-out';sx.lineWidth=scratch.width*.14;sx.lineCap='round';sx.lineJoin='round';sx.beginPath();sx.moveTo(path[0][0]*scratch.width,path[0][1]*scratch.height);if(path.length===1){sx.lineTo(path[0][0]*scratch.width+.01,path[0][1]*scratch.height)}else path.slice(1).forEach(p=>sx.lineTo(p[0]*scratch.width,p[1]*scratch.height));sx.stroke()}
+function paintScratch(){if(done.has(6))return;const r=scratch.parentElement.getBoundingClientRect();if(!r.width||!r.height)return;scratch.width=Math.round(r.width);scratch.height=Math.round(r.height);sx.globalCompositeOperation='source-over';sx.fillStyle='#a78375';sx.fillRect(0,0,scratch.width,scratch.height);sx.fillStyle='#d1b99a';for(let i=0;i<240;i++)sx.fillRect(Math.random()*scratch.width,Math.random()*scratch.height,Math.random()*2+.3,1);sx.fillStyle='#fff0da';sx.textAlign='center';sx.font='400 24px Vazirmatn';sx.fillText('یک قولِ ماندنی',scratch.width/2,scratch.height/2-5);sx.font='400 11px Vazirmatn';sx.fillText('با انگشت پیدایش کن',scratch.width/2,scratch.height/2+23);scratchPaths.forEach(strokePath)}
+function revealScratch(){currentPath=null;scratch.hidden=true;$('scratch-pct').textContent='این قول، سرِ جایش می‌ماند.';$('scratch-reveal').hidden=true;complete(6)}
+function checkScratch(){if(done.has(6)||!scratch.width)return;const data=sx.getImageData(0,0,scratch.width,scratch.height).data;let clear=0,total=0;for(let i=3;i<data.length;i+=80){total++;if(data[i]<30)clear++}scratchPercent=Math.round(clear/total*100);$('scratch-pct').textContent=fa(scratchPercent)+'٪ پیدا شد؛ '+(scratchPercent>=55?'پیدایش کردی.':'آرام ادامه بده.');if(scratchPercent>=55)revealScratch()}
+function scratchPoint(e){const r=scratch.getBoundingClientRect();return [(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height]}
+scratch.addEventListener('pointerdown',e=>{if(done.has(6))return;e.preventDefault();scratch.setPointerCapture(e.pointerId);currentPath=[scratchPoint(e)];scratchPaths.push(currentPath);strokePath(currentPath)});scratch.addEventListener('pointermove',e=>{if(!currentPath||done.has(6))return;const p=scratchPoint(e),last=currentPath[currentPath.length-1];currentPath.push(p);strokePath([last,p]);if(performance.now()-scratchCheck>250){scratchCheck=performance.now();checkScratch()}});function endScratch(){if(!currentPath)return;currentPath=null;checkScratch()}scratch.addEventListener('pointerup',endScratch);scratch.addEventListener('pointercancel',endScratch);scratch.addEventListener('lostpointercapture',endScratch);$('scratch-reveal').addEventListener('click',revealScratch);new ResizeObserver(paintScratch).observe(scratch.parentElement);document.fonts?.ready.then(paintScratch);if(done.has(6))revealScratch();
+/* North remains exact after every spin; completion follows the transition itself. */
+let compassBusy=false,turns=0;
+$('compass-btn').addEventListener('click',()=>{if(compassBusy)return;compassBusy=true;const btn=$('compass-btn');btn.disabled=true;$('compass-word').textContent='هر قدر دور…';$('compass-mean').textContent='دلم راهِ تو را گم نمی‌کند.';turns+=(4+Math.floor(Math.random()*3))*360;const needle=$('needle');let finished=false;const finish=()=>{if(finished)return;finished=true;needle.removeEventListener('transitionend',onEnd);clearTimeout(fallback);compassBusy=false;btn.disabled=false;btn.innerHTML='باز هم، سمتِ تو '+icon('Compass');$('compass-word').textContent='ریحانه؛ همیشه تو.';$('compass-mean').textContent='آخرِ همهٔ راه‌ها، دلم پیش تو آرام می‌گیرد.';complete(7)};const onEnd=e=>{if(e.propertyName==='transform')finish()};needle.addEventListener('transitionend',onEnd);needle.style.transform=`rotate(${turns}deg)`;const fallback=setTimeout(finish,motion.matches?20:3100)});if(done.has(7)){$('compass-word').textContent='ریحانه؛ همیشه تو.';$('compass-mean').textContent='دلم راهِ خانه را بلد است.'}
+/* Timed game has a single lifecycle. Skip, leaving, tab hiding and replay clean up. */
+let playing=false,caught=0,remaining=30,spawnTimer=0,tickTimer=0,endAt=0,heartTimers=new Set(),best=Number(read('reyhaneh.best',0))||0;
+$('tap-best').textContent=fa(best);
+function clearGame(){playing=false;clearInterval(spawnTimer);clearInterval(tickTimer);heartTimers.forEach(clearTimeout);heartTimers.clear();$$('#tap-stage .tap-heart').forEach(h=>h.remove())}
+function renderGame(){$('tap-caught').textContent=fa(caught);$('tap-time').textContent=fa(remaining)}
+function stopGame(reason){if(!playing&&reason!=='skip')return;clearGame();if(caught>best){best=caught;write('reyhaneh.best',best);$('tap-best').textContent=fa(best)}$('tap-start-wrap').hidden=false;$('tap-start').innerHTML='یک بار دیگر '+icon('Heart');if(reason==='skip'){$('tap-msg').textContent='برای دوست داشتنت، هیچ رکوردی لازم نیست.';complete(8)}else if(reason==='finish'){$('tap-msg').textContent=caught?fa(caught)+' قلب گرفتی؛ این دل که از اول مال تو بود.':'قلبم برای تو می‌ماند؛ حتی بی‌هیچ امتیازی.';complete(8)}else $('tap-msg').textContent='بازی متوقف شد؛ هر وقت خواستی از نو شروع کن.'}
+function spawnHeart(){if(!playing)return;const b=document.createElement('button'),bad=Math.random()<.16;b.type='button';b.className='tap-heart'+(bad?' bad':'');b.setAttribute('aria-label',bad?'قلب تیره؛ از آن بگذر':'قلب روشن؛ بگیرش');b.style.left=(5+Math.random()*74)+'%';const life=motion.matches?3800:3400;b.style.setProperty('--life',life+'ms');if(motion.matches){b.style.top=(12+Math.random()*65)+'%'}b.innerHTML=icon('Heart');$('tap-stage').append(b);const timer=setTimeout(()=>{heartTimers.delete(timer);b.remove()},life);heartTimers.add(timer);let taken=false;function take(e){if(taken||!playing)return;taken=true;e.preventDefault();clearTimeout(timer);heartTimers.delete(timer);caught=Math.max(0,caught+(bad?-1:1));renderGame();b.remove();if(!bad)sound()}b.addEventListener('pointerdown',take);b.addEventListener('click',take)}
+$('tap-start').addEventListener('click',()=>{clearGame();caught=0;remaining=30;playing=true;endAt=Date.now()+30000;renderGame();$('tap-start-wrap').hidden=true;$('tap-msg').textContent='روشن‌ها برای تو؛ از تیره‌ها بگذر.';spawnHeart();spawnTimer=setInterval(spawnHeart,730);tickTimer=setInterval(()=>{remaining=Math.max(0,Math.ceil((endAt-Date.now())/1000));renderGame();if(remaining===0)stopGame('finish')},200)});$('tap-skip').addEventListener('click',()=>stopGame('skip'));const gameObserver=new IntersectionObserver(entries=>{if(!entries[0].isIntersecting&&playing)stopGame('leave')},{threshold:.05});gameObserver.observe($('ch8'));document.addEventListener('visibilitychange',()=>{if(document.hidden){releaseHeart();if(playing)stopGame('leave')}});window.addEventListener('blur',releaseHeart);
+/* Private memory vault: preserve existing records and file format. */
+const records=()=>{const value=read(VAULT,[]);return Array.isArray(value)?value.filter(x=>x&&typeof x==='object'):[]};
+function renderVault(){const root=$('vault-items');root.replaceChildren();const items=records();if(!items.length){const p=document.createElement('p');p.className='vault-empty';p.textContent='اولین یادگاری‌مان چه باشد؟';root.append(p);return}const now=new Date(),today=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');items.forEach(item=>{const locked=item.date&&item.date>today,a=document.createElement('article');a.className='vault-item';const h=document.createElement('h4');h.textContent=locked?'نامه‌ای برای روز '+item.date:item.title;const meta=document.createElement('div');meta.className='vault-date';meta.textContent=locked?'هنوز وقت بازشدنش نرسیده':new Date(item.created||Date.now()).toLocaleDateString('fa-IR');a.append(h,meta);if(!locked){const p=document.createElement('p');p.textContent=item.body;a.append(p);if(item.photo&&/^data:image\/(jpeg|png|webp);base64,/.test(item.photo)){const img=new Image();img.src=item.photo;img.alt='عکس این خاطره';img.loading='lazy';a.append(img)}}const b=document.createElement('button');b.className='vault-delete';b.type='button';b.textContent='حذف این یادگاری';b.addEventListener('click',()=>{if(!confirm('این یادگاری از همین مرورگر پاک شود؟'))return;if(write(VAULT,records().filter(x=>x.id!==item.id)))renderVault();else toast('ذخیرهٔ تغییرات ممکن نشد.')});a.append(b);root.append(a)})}
+function compressPhoto(file){return new Promise((resolve,reject)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{try{const c=document.createElement('canvas'),scale=Math.min(1,800/Math.max(img.width,img.height));c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);resolve(c.toDataURL('image/jpeg',.7))}catch(e){reject(e)}finally{URL.revokeObjectURL(url)}};img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('image'))};img.src=url})}
+$('vault-form').addEventListener('submit',async e=>{e.preventDefault();const status=$('vault-status'),title=$('vault-title').value.trim(),body=$('vault-body').value.trim(),file=$('vault-photo').files[0],items=records(),btn=e.submitter;if(!title||!body){status.textContent='اسم و متن خاطره را بنویس.';return}if(items.length>=18){status.textContent='صندوقچه فعلاً تا ۱۸ یادگاری جا دارد.';return}if(file&&file.size>8*1024*1024){status.textContent='عکسی کوچک‌تر از ۸ مگابایت انتخاب کن.';return}btn.disabled=true;try{const photo=file?await compressPhoto(file):'';items.unshift({id:Date.now()+'-'+Math.random().toString(36).slice(2),title,body,date:$('vault-date').value,photo,created:new Date().toISOString()});if(!write(VAULT,items))throw Error('storage');$('vault-form').reset();status.textContent='بماند برای روزهای بعدمان.';renderVault();sound(true)}catch{status.textContent='ذخیره نشد؛ حافظهٔ مرورگر یا عکس را بررسی کن.'}finally{btn.disabled=false}});renderVault();
+let voiceURL='';$('voice-local').addEventListener('change',()=>{const file=$('voice-local').files[0];if(!file)return;if(voiceURL)URL.revokeObjectURL(voiceURL);voiceURL=URL.createObjectURL(file);$('voice-player').src=voiceURL;$('voice-player').hidden=false});window.addEventListener('pagehide',()=>{clearGame();releaseHeart();if(voiceURL)URL.revokeObjectURL(voiceURL)});
 })();
