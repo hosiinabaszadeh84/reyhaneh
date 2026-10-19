@@ -135,3 +135,17 @@ body{background:radial-gradient(130% 55% at 50% -8%,#431f30 0%,#2a1424 44%,#1b0d
 .next-link{color:#e3b8b4}
 .next-link:hover{color:#ffe9d2;text-shadow:0 0 14px rgba(255,150,170,.4)}
 @media(prefers-reduced-motion:reduce){.env-seal{animation:none}}
+
+/* ===== v9 · richer motion: real growing flowers + floating hearts + button shine ===== */
+@keyframes plant-grow{0%{transform:scale(0);opacity:0}30%{transform:scale(1.14);opacity:1}55%{transform:scale(.93)}78%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+.flower{animation:plant-grow 1.15s var(--ease) both}
+.flower::after{content:'';position:absolute;left:50%;bottom:-6px;width:54px;height:16px;transform:translateX(-50%);background:radial-gradient(50% 50% at 50% 50%,rgba(255,170,190,.55),transparent 70%);opacity:0;animation:soil-glow 1.15s var(--ease) both;pointer-events:none}
+@keyframes soil-glow{0%{opacity:0;transform:translateX(-50%) scale(.4)}30%{opacity:.9;transform:translateX(-50%) scale(1.1)}100%{opacity:0;transform:translateX(-50%) scale(1.5)}}
+.heart-field{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.heart-field i{position:absolute;bottom:-34px;width:var(--hsize);height:var(--hsize);background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z' fill='%23ff8fab'/%3E%3C/svg%3E") center/contain no-repeat;opacity:0;animation:heart-rise var(--rise) var(--hdelay) linear infinite paused}
+.motion-visible>.heart-field i{animation-play-state:running}
+@keyframes heart-rise{0%{transform:translate3d(0,0,0) scale(.7) rotate(-8deg);opacity:0}12%{opacity:.8}82%{opacity:.65}100%{transform:translate3d(var(--hdrift),-108vh,0) scale(1.06) rotate(10deg);opacity:0}}
+.btn{position:relative;overflow:hidden}
+.btn::after{content:'';position:absolute;top:0;bottom:0;width:45%;left:-60%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.3),transparent);transform:skewX(-18deg);animation:btn-shine 6.5s ease-in-out infinite;pointer-events:none}
+@keyframes btn-shine{0%,70%{left:-60%}90%,100%{left:135%}}
+@media(prefers-reduced-motion:reduce){.heart-field{display:none}.btn::after{animation:none;display:none}.flower{animation-duration:.01ms}.flower::after{display:none}}
