@@ -48,7 +48,7 @@ let entering=false;async function enterStory(){
  const target=entryId||'#home';
  $('story').inert=false;$('story').removeAttribute('aria-hidden');document.body.classList.remove('intro-visible');
  document.getElementById(target.slice(1))?.scrollIntoView({behavior:'instant',block:'start'});history.replaceState(null,'',target);
- setTimeout(()=>{const intro=$('story-intro');intro.classList.add('leaving');document.getElementById(target.slice(1))?.setAttribute('tabindex','-1');document.getElementById(target.slice(1))?.focus({preventScroll:true});setTimeout(()=>intro.remove(),motion.matches?30:500)},motion.matches?20:950);
+ setTimeout(()=>{const intro=$('story-intro');intro.classList.add('leaving');document.getElementById(target.slice(1))?.setAttribute('tabindex','-1');document.getElementById(target.slice(1))?.focus({preventScroll:true});setTimeout(()=>intro.remove(),motion.matches?30:500)},motion.matches?20:1900);
 }
 $('intro-start').addEventListener('click',enterStory);$('intro-envelope').addEventListener('click',enterStory);
 const heroObserver=new IntersectionObserver(entries=>entries.forEach(e=>e.target.classList.toggle('is-visible',e.isIntersecting&&!document.hidden)),{threshold:.05});heroObserver.observe($('home'));
