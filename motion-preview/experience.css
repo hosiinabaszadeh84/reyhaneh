@@ -99,3 +99,5 @@ dialog{padding:24px;border:1px solid #c5a58a55;border-radius:26px;background:#2c
 .motion-visible .scroll-hint .icon{animation:scroll-bob 1.8s ease-in-out infinite}
 @keyframes scroll-bob{0%,100%{transform:translateY(-2px)}50%{transform:translateY(4px)}}
 @media(prefers-reduced-motion:reduce){.motion-visible .scroll-hint .icon{animation:none}}
+/* Prevent the envelope's preferred ratio from widening the grid on 320px phones. */
+.intro-content{min-width:0;max-width:100%}.intro-object{min-width:0;min-height:0}
