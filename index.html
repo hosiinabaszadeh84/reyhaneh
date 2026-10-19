@@ -387,7 +387,9 @@
         html{scroll-behavior:auto}
       }
     </style>
-  </head>
+    <meta name="description" content="هشت کشف کوچک، یک داستان عاشقانه برای ریحانه؛ سفر تعاملی قلب‌های ما." />
+  <link rel="stylesheet" href="experience.css?v=2" />
+</head>
   <body>
     <canvas id="petals" aria-hidden="true"></canvas>
     <div id="burst-layer" aria-hidden="true"></div>
@@ -681,6 +683,32 @@
 
       /* ---------- journey progress ---------- */
       var doneSet = {};
+        try {
+          var savedChapters = JSON.parse(localStorage.getItem("reyhaneh.v2.progress") || "[]");
+          if(Array.isArray(savedChapters)) {
+            savedChapters.forEach(function(n) {
+              if(!Number.isInteger(n) || n<1 || n>8)return;
+              doneSet[n] = true;
+              var section = document.querySelector('[data-chapter="'+n+'"]');
+              if(section) {
+                section.classList.add("done");
+                section.querySelectorAll(".reveal-text").forEach(function(el){ el.classList.add("show"); });
+              }
+              if(n===6) {
+                var scratch = document.getElementById("scratch-canvas");
+                if(scratch) scratch.style.display="none";
+              }
+              if(n===2) {
+                var envelope = document.getElementById("envelope");
+                if(envelope) envelope.classList.add("open");
+              }
+            });
+            var doneCount = Object.keys(doneSet).length;
+            document.getElementById("progress-fill").style.width=(doneCount/8*100)+"%";
+            document.getElementById("progress-count").textContent=faNum(doneCount)+" از ۸";
+          }
+        } catch(_) {}
+
       function complete(id){
         if(doneSet[id]) return;
         doneSet[id] = true;
@@ -1111,7 +1139,8 @@
         var stage = $("tap-stage"), startWrap = $("tap-start-wrap"), startBtn = $("tap-start"),
             caughtEl = $("tap-caught"), timeEl = $("tap-time"), bestEl = $("tap-best"),
             msgEl = $("tap-msg"), poem = $("tap-poem");
-        var best = 0, caught = 0, timeLeft = 30, playing = false;
+        var best = Number(localStorage.getItem('reyhaneh.best') || 0), caught = 0, timeLeft = 30, playing = false;
+        if(bestEl) bestEl.textContent = faNum(best);
         var spawnTimer = null, tickTimer = null;
 
         function heartEl(bad){
@@ -1172,7 +1201,7 @@
           playing = false;
           clearInterval(spawnTimer); clearInterval(tickTimer);
           stage.querySelectorAll(".tap-heart").forEach(function(el){ el.remove(); });
-          if(caught > best){ best = caught; bestEl.textContent = faNum(best); }
+          if(caught > best){ best = caught; bestEl.textContent = faNum(best); try {localStorage.setItem('reyhaneh.best', String(best));}catch(_){} }
           timeEl.textContent = faNum(30);
           startWrap.style.display = "flex";
           startBtn.textContent = "دوباره بازی کن";
@@ -1214,5 +1243,6 @@
       finaleObs.observe(document.body, {subtree:true, attributes:true, attributeFilter:["class"]});
     })();
     </script>
-  </body>
+    <script src="experience.js?v=2"></script>
+</body>
 </html>
