@@ -388,7 +388,7 @@
       }
     </style>
     <meta name="description" content="هشت کشف کوچک، یک داستان عاشقانه برای ریحانه؛ سفر تعاملی قلب‌های ما." />
-  <link rel="stylesheet" href="experience.css?v=2" />
+  <link rel="stylesheet" href="experience.css?v=3" />
 </head>
   <body>
     <canvas id="petals" aria-hidden="true"></canvas>
@@ -468,22 +468,27 @@
           <p class="lead">این پاکت را با یک مُهرِ قلبی بسته‌ام. رویش بزن تا باز شود؛ و هر بار که دلت خواست، نامه‌ی تازه‌ای از راه می‌رسد.</p>
         </div>
         <div class="panel env-stage">
-          <div class="envelope" id="envelope" role="button" aria-label="باز کردن نامه" tabindex="0">
-            <div class="env-back"></div>
-            <div class="env-letter">
-              <p id="env-msg">برای ریحانه‌ام؛<br/>تو فقط باش؛ همین که کنارت زندگی رنگ می‌گیره، برای من از سرِ تموم دنیا هم زیاده.</p>
-              <span class="sig">— همسرت، که دلش پیشِ توست</span>
-            </div>
-            <div class="env-body"></div>
-            <div class="env-flap"></div>
-            <div class="env-seal">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-            </div>
+          <div class="letter-sparkles" aria-hidden="true">✦ &nbsp; ✧ &nbsp; ✦</div>
+          <button class="letter-envelope" id="envelope" type="button" aria-expanded="false" aria-controls="env-reader" aria-label="باز کردن نامه عاشقانه">
+            <span class="letter-envelope-back"></span>
+            <span class="letter-insert" aria-hidden="true">برای ریحانه‌ام <span>♥</span></span>
+            <span class="letter-pocket"></span>
+            <span class="letter-flap"></span>
+            <span class="letter-seal" aria-hidden="true">♥</span>
+          </button>
+          <div class="letter-reader" id="env-reader" aria-hidden="true">
+            <article class="letter-paper">
+              <div class="letter-paper-header"><span>نامه‌ای از دل من</span><span id="letter-count">۱ از ۶</span></div>
+              <div class="letter-paper-rule" aria-hidden="true">❦</div>
+              <div class="letter-text" id="env-msg" aria-live="polite">برای ریحانه‌ام؛<br>تو فقط باش؛ همین که کنارت زندگی رنگ می‌گیره، برای من از سرِ تموم دنیا هم زیاده.</div>
+              <div class="letter-signature">— همسرت، که دلش پیش توست ♥</div>
+            </article>
           </div>
-          <div class="env-actions">
-            <button class="btn small" id="env-next" type="button">نامه‌ی بعدی را باز کن</button>
+          <div class="letter-controls" id="letter-controls" hidden>
+            <button class="btn small" id="env-next" type="button">نامه بعدی ✦</button>
+            <button class="letter-close" id="env-close" type="button">بستن نامه</button>
           </div>
-          <p class="hint" id="env-hint">روی پاکت بزن تا نامه باز شود</p>
+          <p class="hint" id="env-hint">مُهر قلبی پاکت را لمس کن تا نامه باز شود.</p>
         </div>
       </section>
 
@@ -567,7 +572,7 @@
         <div class="chapter-head">
           <span class="chapter-num">۷</span>
           <h2>قطب‌نمای دلم<span class="done-badge">کامل شد ♥</span></h2>
-          <p class="lead">قطب‌نماها شمال را نشان می‌دهند؛ اما قطب‌نمای دلِ من فقط یک جهت بلد است. دکمه را بزن و ببین عقربه کجا می‌ایستد.</p>
+          <p class="lead">آدم هزار راه پیشِ رو دارد، اما عقربهٔ این قطب‌نما هر بار، از هر چرخشی، فقط به یک جا برمی‌گردد: <strong>ریحانه ♥</strong></p>
         </div>
         <div class="panel">
           <div class="compass-wrap">
@@ -575,7 +580,7 @@
               <circle cx="150" cy="150" r="142" fill="var(--card-soft)" stroke="var(--line)" stroke-width="2"/>
               <circle cx="150" cy="150" r="118" fill="none" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="3 7"/>
               <g font-family="Vazirmatn,Tahoma" font-weight="800" font-size="17" fill="var(--ink-soft)" text-anchor="middle">
-                <text x="150" y="42">کار</text>
+                <text x="150" y="42" class="compass-north">ریحانه ♥</text>
                 <text x="266" y="157">سفر</text>
                 <text x="150" y="278">خواب</text>
                 <text x="34" y="157">دنیا</text>
@@ -699,8 +704,7 @@
                 if(scratch) scratch.style.display="none";
               }
               if(n===2) {
-                var envelope = document.getElementById("envelope");
-                if(envelope) envelope.classList.add("open");
+                // Stage completion persists; the letter intentionally starts closed on every visit.
               }
             });
             var doneCount = Object.keys(doneSet).length;
@@ -844,36 +848,53 @@
       /* ================= 2 · ENVELOPE ================= */
       (function(){
         var env = $("envelope"), msg = $("env-msg"), hint = $("env-hint"), nextBtn = $("env-next");
+        var reader = $("env-reader"), controls = $("letter-controls"), closeBtn = $("env-close"), count = $("letter-count");
         var letters = [
-          "برای ریحانه‌ام؛<br/>تو فقط باش؛ همین که کنارت زندگی رنگ می‌گیره، برای من از سرِ تموم دنیا هم زیاده.",
-          "ریحانه‌ام؛<br/>خیالت راحت باشه، تو فقط به روزای قشنگمون فکر کن؛ سنگینی و سختیِ مسیر، هر چقدرم باشه به دوشِ منه تا آب تو دلت تکون نخوره.",
-          "انیسم؛<br/>هر جا حس کردی کم آوردی، یادت باشه یکی هست که پشتته؛ همه‌جوره پات ایستاده و تموم دلخوشیش لبخندِ توئه.",
-          "طبیبم؛<br/>تمام خستگی‌های کار و روزمرگی، همین که صدای آرومت رو می‌شنوم و می‌دونم کنارمی، دود می‌شه می‌ره هوا.",
-          "آرامِ جانم؛<br/>اینجا، زیارت، تنها با تو تماشایی‌ست… جایت سبز، ای دعایِ مستجابِ من؛ صبحت بخیر ریحانه‌ام.",
-          "شفیقم؛<br/>قشنگیِ زندگی از جایی شروع شد که شدی خانومِ این خونه و انیسِ روز و شبم."
+          "برای ریحانه‌ام؛<br>تو فقط باش؛ همین که کنارت زندگی رنگ می‌گیره، برای من از سرِ تموم دنیا هم زیاده.",
+          "ریحانه‌ام؛<br>خیالت راحت باشه، تو فقط به روزای قشنگمون فکر کن؛ سنگینی و سختیِ مسیر، هر چقدرم باشه به دوشِ منه تا آب تو دلت تکون نخوره.",
+          "انیسم؛<br>هر جا حس کردی کم آوردی، یادت باشه یکی هست که پشتته؛ همه‌جوره پات ایستاده و تموم دلخوشیش لبخندِ توئه.",
+          "طبیبم؛<br>تمام خستگی‌های کار و روزمرگی، همین که صدای آرومت رو می‌شنوم و می‌دونم کنارمی، دود می‌شه می‌ره هوا.",
+          "آرامِ جانم؛<br>اینجا، زیارت، تنها با تو تماشایی‌ست… جایت سبز، ای دعایِ مستجابِ من؛ صبحت بخیر ریحانه‌ام.",
+          "شفیقم؛<br>قشنگیِ زندگی از جایی شروع شد که شدی خانومِ این خونه و انیسِ روز و شبم."
         ];
-        var idx = 0, opened = false;
-        function toggle(){
-          if(env.classList.contains("open")){
-            env.classList.remove("open");
-            hint.textContent = "روی پاکت بزن تا نامه باز شود";
-          } else {
-            env.classList.add("open");
-            hint.textContent = "این نامه فقط برای چشم‌های توست ♥";
-            if(!opened){ opened = true; complete(2); }
+        var idx = 0, opened = false, isOpen = false, changing = false;
+        function setOpen(value){
+          isOpen = value;
+          env.classList.toggle("is-open", value);
+          env.setAttribute("aria-expanded", String(value));
+          env.setAttribute("aria-label", value ? "بستن نامه عاشقانه" : "باز کردن نامه عاشقانه");
+          reader.classList.toggle("is-open", value);
+          reader.setAttribute("aria-hidden", String(!value));
+          controls.hidden = !value;
+          hint.textContent = value ? "این حرف‌ها را فقط برای تو نوشته‌ام ♥" : "مُهر قلبی پاکت را لمس کن تا نامه باز شود.";
+          if(value && !opened){opened = true; complete(2);}
+          if(value) {
+            var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            setTimeout(function(){
+              if(!isOpen) return;
+              var rect = reader.getBoundingClientRect();
+              if(rect.bottom > innerHeight - 65 || rect.top < 75){
+                reader.scrollIntoView({behavior:reduced ? "instant" : "smooth",block:"center"});
+              }
+            }, reduced ? 30 : 550);
           }
         }
-        env.addEventListener("click", toggle);
-        env.addEventListener("keydown", function(e){ if(e.code==="Enter"||e.code==="Space"){ e.preventDefault(); toggle(); } });
+        env.addEventListener("click", function(){setOpen(!isOpen);});
+        closeBtn.addEventListener("click", function(){setOpen(false);env.focus({preventScroll:true});});
         nextBtn.addEventListener("click", function(){
-          idx = (idx + 1) % letters.length;
-          env.classList.remove("open");
+          if(changing) return;
+          changing = true;
+          var paper = reader.querySelector(".letter-paper");
+          paper.classList.add("changing");
           setTimeout(function(){
+            idx = (idx + 1) % letters.length;
             msg.innerHTML = letters[idx];
-            env.classList.add("open");
-            var r = env.getBoundingClientRect();
-            heartBurst(r.left + r.width/2, r.top + 40, 10);
-          }, 420);
+            count.textContent = faNum(idx + 1) + " از " + faNum(letters.length);
+            paper.classList.remove("changing");
+            changing = false;
+            var r = reader.getBoundingClientRect();
+            heartBurst(r.left + r.width/2, r.top + Math.min(90, r.height/2), 10);
+          }, 200);
         });
       })();
 
@@ -1110,29 +1131,34 @@
       /* ================= 7 · COMPASS ================= */
       (function(){
         var needle = $("needle"), word = $("compass-word"), mean = $("compass-mean");
-        var stops = [
-          {at:0,   w:"ریحانه", m:"دیدی؟ هر راهی که بروم، عقربه باز به تو می‌رسد؛ شمالِ دلِ من، تویی."},
-          {at:90,  w:"ریحانه", m:"سفر هم که بروم، دلم پیشِ تو می‌ماند؛ مقصدِ همه‌ی راه‌های من تویی."},
-          {at:180, w:"ریحانه", m:"حتی در خواب هم عقربه سمتِ تو می‌چرخد؛ رؤیاهای من همه بوی ریحان می‌دهند."},
-          {at:270, w:"ریحانه", m:"دنیا هر طرف که بچرخد، قبله‌ی دلِ من یکی‌ست: تو."}
+        var messages = [
+          "کار و مشغله هرقدر هم دورم کنند، آخرِ همهٔ راه‌ها برایم تویی.",
+          "حتی اگر هزار بار مسیرم عوض شود، دل من راه خانه را بلد است؛ پیشِ تو.",
+          "سفر، خواب، روزهای شلوغ… هیچ‌کدام نمی‌توانند جهتِ دلم را عوض کنند.",
+          "عقربه را دیدی؟ هر بار می‌چرخد، باز برمی‌گردد به ریحانهٔ من."
         ];
         var totalRot = 0, busy = false;
-        $("compass-btn").addEventListener("click", function(){
+        var btn = $("compass-btn");
+        var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+        function finish(){
+          busy = false;
+          word.textContent = "ریحانه ♥";
+          mean.textContent = messages[Math.floor(Math.random() * messages.length)];
+          btn.disabled = false;
+          btn.textContent = "دوباره بچرخان";
+          complete(7);
+        }
+        btn.addEventListener("click", function(){
           if(busy) return;
           busy = true;
-          var pick = stops[Math.floor(Math.random()*stops.length)];
-          var cur = ((totalRot % 360) + 360) % 360;
-          var delta = ((pick.at - cur) % 360 + 360) % 360;
-          totalRot += 360*4 + delta;
-          needle.style.transform = "rotate("+totalRot+"deg)";
-          word.textContent = "دارد می‌چرخد…";
-          mean.textContent = "بگذار عقربه آرام بگیرد…";
-          setTimeout(function(){
-            busy = false;
-            word.textContent = pick.w;
-            mean.textContent = pick.m;
-            complete(7);
-          }, 2650);
+          btn.disabled = true;
+          word.textContent = "دارد دنبال تو می‌گردد…";
+          mean.textContent = "هر جا بروم، تهِ راه یک نفر منتظرم است…";
+          // The red arrow starts pointing north. Every landing is an exact
+          // integer number of full turns, so it ALWAYS points to "ریحانه".
+          totalRot += (4 + Math.floor(Math.random() * 3)) * 360;
+          needle.style.transform = "rotate(" + totalRot + "deg)";
+          setTimeout(finish, reducedMotion.matches ? 60 : 2700);
         });
       })();
 
@@ -1245,6 +1271,6 @@
       finaleObs.observe(document.body, {subtree:true, attributes:true, attributeFilter:["class"]});
     })();
     </script>
-    <script src="experience.js?v=2"></script>
+    <script src="experience.js?v=3"></script>
 </body>
 </html>
