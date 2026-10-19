@@ -40,13 +40,12 @@ const chapterObserver=new IntersectionObserver(entries=>{for(const entry of entr
 const readyIntro=()=>document.getElementById('story-intro')?.classList.add('intro-ready');
 Promise.all([document.fonts.load('500 42px Naskh'),document.fonts.load('400 14px Vazirmatn')]).then(readyIntro,readyIntro);setTimeout(readyIntro,1800);
 const entry=window.__entryHash||'', entryId=/^#(?:ch[1-8]|finale|memory-vault)$/.test(entry)?entry:'';
-if(done.size)$('intro-start').innerHTML='برگردیم به قصه '+icon('ArrowLeft');
+
 let entering=false;async function enterStory(){
  if(entering)return;entering=true;$('intro-envelope').disabled=true;burst($('intro-envelope'),14);
  const button=$('intro-start');button.disabled=true;sound();$('story-intro').classList.add('opening');$('intro-start').textContent='برای تو، با تمام دل…';
  await Promise.race([document.fonts?.ready||Promise.resolve(),new Promise(r=>setTimeout(r,600))]);
- const missing=[1,2,3,4,5,6,7,8].find(n=>!done.has(n));
- const target=entryId&&entryId!=='#ch1'?entryId:done.size?'#'+(missing?'ch'+missing:'finale'):'#home';
+ const target=entryId||'#home';
  $('story').inert=false;$('story').removeAttribute('aria-hidden');document.body.classList.remove('intro-visible');
  document.getElementById(target.slice(1))?.scrollIntoView({behavior:'instant',block:'start'});history.replaceState(null,'',target);
  setTimeout(()=>{const intro=$('story-intro');intro.classList.add('leaving');document.getElementById(target.slice(1))?.setAttribute('tabindex','-1');document.getElementById(target.slice(1))?.focus({preventScroll:true});setTimeout(()=>intro.remove(),motion.matches?30:500)},motion.matches?20:950);

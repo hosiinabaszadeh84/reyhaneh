@@ -149,3 +149,21 @@ body{background:radial-gradient(130% 55% at 50% -8%,#431f30 0%,#2a1424 44%,#1b0d
 .btn::after{content:'';position:absolute;top:0;bottom:0;width:45%;left:-60%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.3),transparent);transform:skewX(-18deg);animation:btn-shine 6.5s ease-in-out infinite;pointer-events:none}
 @keyframes btn-shine{0%,70%{left:-60%}90%,100%{left:135%}}
 @media(prefers-reduced-motion:reduce){.heart-field{display:none}.btn::after{animation:none;display:none}.flower{animation-duration:.01ms}.flower::after{display:none}}
+
+/* ===== v10 · larger readable type ===== */
+body{font-size:15px}
+.hero-copy{font-size:15px}
+.lead{font-size:13.5px;line-height:2.15}
+.verse{font-size:clamp(18.5px,5vw,22px)}
+.hint{font-size:12px}
+.btn{font-size:14px}
+.text-button{font-size:12.5px}
+.overline{font-size:12px}
+.eyebrow{font-size:11px}
+.letter-verse{font-size:clamp(19px,5.2vw,22px)}
+.letter-title{font-size:24px}
+.final-copy{font-size:14px}
+.wheel-result p,.compass-result p{font-size:12.5px}
+.chapter h2{font-size:clamp(33px,8.8vw,44px)}
+#hold-pct{font-size:21px}
+.vault-intro,.privacy-note{font-size:11.5px}
