@@ -95,3 +95,7 @@ dialog{padding:24px;border:1px solid #c5a58a55;border-radius:26px;background:#2c
 @keyframes twinkle{0%,100%{opacity:.15;transform:scale(.7)}50%{opacity:.9;transform:scale(1.4)}}
 @media(max-height:730px) and (max-width:600px){.intro-object{min-height:169px;width:250px;margin:16px auto}.intro-content h1{font-size:32px}}
 @media(prefers-reduced-motion:reduce){.chapter:not(.motion-visible) .chapter-head{opacity:1;transform:none}.interaction-burst,.petal-field{display:none}.motion-visible #hold-zone,.motion-visible .lantern,.motion-visible .lantern.lit img{animation:none}.opening .env-note{transition-delay:0s}}
+.heart-replay[hidden]{display:flex!important;visibility:hidden;pointer-events:none}
+.motion-visible .scroll-hint .icon{animation:scroll-bob 1.8s ease-in-out infinite}
+@keyframes scroll-bob{0%,100%{transform:translateY(-2px)}50%{transform:translateY(4px)}}
+@media(prefers-reduced-motion:reduce){.motion-visible .scroll-hint .icon{animation:none}}
