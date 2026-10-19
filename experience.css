@@ -101,3 +101,37 @@ dialog{padding:24px;border:1px solid #c5a58a55;border-radius:26px;background:#2c
 @media(prefers-reduced-motion:reduce){.motion-visible .scroll-hint .icon{animation:none}}
 /* Prevent the envelope's preferred ratio from widening the grid on 320px phones. */
 .intro-content{min-width:0;max-width:100%}.intro-object{min-width:0;min-height:0}
+
+/* ===== v8 · romantic glow upgrade + touch hardening ===== */
+body{background:radial-gradient(130% 55% at 50% -8%,#431f30 0%,#2a1424 44%,#1b0d19 100%)}
+#story-intro{background:radial-gradient(120% 62% at 50% 0%,#3d1d2e 0%,#221320 58%,#170c16 100%)}
+.intro-backdrop{opacity:.24}
+.intro-content h1{text-shadow:0 3px 28px rgba(233,120,150,.38)}
+.intro-content h1 em,.finale h2 em{background:linear-gradient(115deg,#ffd9a8 10%,#ff8fb0 50%,#ffd9a8 90%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.env-seal{box-shadow:0 5px 9px #71334f66,inset 0 0 0 4px #a36a6444,0 0 30px rgba(255,150,170,.55);animation:seal-pulse 2.6s ease-in-out infinite}
+@keyframes seal-pulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
+.hero::after{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(62% 44% at 50% 64%,rgba(255,110,140,.16),transparent 70%)}
+.hero-content h2{text-shadow:0 4px 34px rgba(255,110,140,.42),0 2px 12px rgba(0,0,0,.5)}
+.hero-content h2 span{color:#ffd9b8;text-shadow:0 1px 12px rgba(255,150,170,.3)}
+.scene{border-color:rgba(255,170,190,.3);box-shadow:0 20px 65px rgba(12,7,17,.42),inset 0 1px 0 rgba(255,220,230,.1),0 0 46px rgba(255,110,140,.08)}
+.scene::before{content:'';position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,190,205,.55),transparent);pointer-events:none}
+.btn{background:linear-gradient(135deg,#c06a86,#a34a68);box-shadow:0 10px 28px rgba(190,70,110,.38),inset 0 1px 0 rgba(255,255,255,.2)}
+.btn:hover{background:linear-gradient(135deg,#d17d97,#ad5473);box-shadow:0 12px 32px rgba(200,80,120,.45),inset 0 1px 0 rgba(255,255,255,.22)}
+.btn.ivory{background:linear-gradient(135deg,#fff6e3,#f2d9b6);box-shadow:0 10px 28px rgba(240,200,150,.28),inset 0 1px 0 #fff}
+.chapter h2{text-shadow:0 2px 22px rgba(255,130,160,.28)}
+.eyebrow{color:#f0c9a0}
+.verse{color:#ffe9d2;text-shadow:0 1px 15px rgba(255,150,170,.24)}
+.journey-track span{background:linear-gradient(90deg,#e8a13a,#ff7d9c);box-shadow:0 0 14px rgba(255,125,156,.65)}
+.done-badge{color:#ffd9a8}
+.petal-field i{opacity:.82;background:linear-gradient(130deg,rgba(255,150,175,.78),rgba(200,90,120,.38))}
+.heart-scene{background:radial-gradient(80% 80% at 50% 38%,rgba(255,110,140,.13),transparent 70%),#4a293522}
+#hold-zone{filter:drop-shadow(0 10px 26px rgba(255,110,140,.28))}
+.lantern.lit{filter:drop-shadow(0 0 16px rgba(248,199,122,.75)) drop-shadow(0 0 34px rgba(255,195,105,.4))}
+.final-heart{color:#e0a3ac}
+.journey-complete .final-heart{filter:drop-shadow(0 0 28px rgba(255,130,160,.55))}
+#story-toast{background:linear-gradient(135deg,#f6e3cd,#eecfae)}
+.tap-heart{width:58px;height:58px}
+.tap-stage{height:332px}
+.next-link{color:#e3b8b4}
+.next-link:hover{color:#ffe9d2;text-shadow:0 0 14px rgba(255,150,170,.4)}
+@media(prefers-reduced-motion:reduce){.env-seal{animation:none}}
