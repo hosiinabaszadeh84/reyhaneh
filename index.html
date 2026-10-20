@@ -4,13 +4,25 @@
 <meta name="theme-color" content="#21131f"><meta name="color-scheme" content="dark">
 <meta name="description" content="برای ریحانه، از طرف حسین؛ هشت کشف کوچک و یک دوستت دارم.">
 <title>ریحانه | یک قصه برای دو نفر</title>
-<script>history.scrollRestoration='manual';window.__entryHash=location.hash;if(location.hash)history.replaceState(null,'',location.pathname+location.search);</script>
+<script>history.scrollRestoration='manual';window.__entryHash=location.hash;if(location.hash)history.replaceState(null,'',location.pathname+location.search);try{if(localStorage.getItem('reyhaneh.unlocked')==='1')document.documentElement.classList.add('unlocked')}catch(e){}</script>
 <link rel="icon" href="assets/icons.svg" type="image/svg+xml">
 <link rel="preload" href="assets/vazirmatn.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/naskh.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="stylesheet" href="experience.css?v=20261019-11">
-<script defer src="content.js?v=20261019-11"></script><script defer src="experience.js?v=20261019-11"></script>
+<link rel="stylesheet" href="experience.css?v=20261019-12">
+<script defer src="content.js?v=20261019-12"></script><script defer src="experience.js?v=20261019-12"></script>
 </head><body class="intro-visible">
+<div id="gate-lock" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+ <div class="gate-card">
+  <span class="gate-heart"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#Heart"></use></svg></span>
+  <h2 id="gate-title">این دنیا، فقط برای یک نفره</h2>
+  <p class="gate-sub">اگه اون نفری، رمز رو بزن و بیا تو</p>
+  <form id="gate-form" autocomplete="off">
+   <input id="gate-input" type="password" inputmode="numeric" autocomplete="off" placeholder="رمز" aria-label="رمز ورود" dir="ltr">
+   <button class="btn ivory" type="submit">بازش کن</button>
+  </form>
+  <p class="gate-error" id="gate-error" role="alert" hidden>این رمز نیست؛ دوباره تلاش کن</p>
+ </div>
+</div>
 <div id="story-intro" role="dialog" aria-modal="true" aria-labelledby="intro-title">
  <div class="intro-backdrop" aria-hidden="true"></div><div class="intro-content">
  <p class="overline">برای ریحانه، از طرف حسین</p>

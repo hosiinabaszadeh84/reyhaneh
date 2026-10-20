@@ -122,3 +122,14 @@ function compressPhoto(file){return new Promise((resolve,reject)=>{const img=new
 $('vault-form').addEventListener('submit',async e=>{e.preventDefault();const status=$('vault-status'),title=$('vault-title').value.trim(),body=$('vault-body').value.trim(),file=$('vault-photo').files[0],items=records(),btn=e.submitter;if(!title||!body){status.textContent='اسم و متن خاطره را بنویس.';return}if(items.length>=18){status.textContent='صندوقچه فعلاً تا ۱۸ یادگاری جا دارد.';return}if(file&&file.size>8*1024*1024){status.textContent='عکسی کوچک‌تر از ۸ مگابایت انتخاب کن.';return}btn.disabled=true;try{const photo=file?await compressPhoto(file):'';items.unshift({id:Date.now()+'-'+Math.random().toString(36).slice(2),title,body,date:$('vault-date').value,photo,created:new Date().toISOString()});if(!write(VAULT,items))throw Error('storage');$('vault-form').reset();status.textContent='بماند برای روزهای بعدمان.';renderVault();sound(true)}catch{status.textContent='ذخیره نشد؛ حافظهٔ مرورگر یا عکس را بررسی کن.'}finally{btn.disabled=false}});renderVault();
 let voiceURL='';$('voice-local').addEventListener('change',()=>{const file=$('voice-local').files[0];if(!file)return;if(voiceURL)URL.revokeObjectURL(voiceURL);voiceURL=URL.createObjectURL(file);$('voice-player').src=voiceURL;$('voice-player').hidden=false});window.addEventListener('pagehide',()=>{clearGame();releaseHeart();if(voiceURL)URL.revokeObjectURL(voiceURL)});
 })();
+
+/* Private gate: one-time password (stored only as SHA-256 hash), remembered per device. */
+(()=>{const gate=$('gate-lock');if(!gate)return;const KEY='reyhaneh.unlocked';const HASH='e8bd7957a6e9cdcbccec9465f0f1557c33beee621bd1c708b9040559dd57100e';
+ if(document.documentElement.classList.contains('unlocked')){gate.remove();return}
+ const form=$('gate-form'),input=$('gate-input'),error=$('gate-error');
+ setTimeout(()=>{try{input.focus({preventScroll:true})}catch(e){}},400);
+ form.addEventListener('submit',async e=>{e.preventDefault();const value=input.value.trim();if(!value)return;let ok=false;
+  try{const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value));ok=[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('')===HASH}catch(err){ok=false}
+  if(ok){try{localStorage.setItem(KEY,'1')}catch(e){} SOUND_ON&&sound(740,.2,'sine',.05);gate.classList.add('leaving');setTimeout(()=>gate.remove(),motion.matches?30:520)}
+  else{error.hidden=false;gate.classList.remove('shake');void gate.offsetWidth;gate.classList.add('shake');input.select();SOUND_ON&&sound(220,.16,'triangle',.05)}});
+})();
