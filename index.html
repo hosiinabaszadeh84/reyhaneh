@@ -4,25 +4,41 @@
 <meta name="theme-color" content="#21131f"><meta name="color-scheme" content="dark">
 <meta name="description" content="برای ریحانه، از طرف حسین؛ هشت کشف کوچک و یک دوستت دارم.">
 <title>ریحانه | یک قصه برای دو نفر</title>
-<script>history.scrollRestoration='manual';window.__entryHash=location.hash;if(location.hash)history.replaceState(null,'',location.pathname+location.search);try{if(localStorage.getItem('reyhaneh.unlocked')==='1')document.documentElement.classList.add('unlocked')}catch(e){}</script>
+<script>history.scrollRestoration='manual';window.__entryHash=location.hash;if(location.hash)history.replaceState(null,'',location.pathname+location.search);try{var u=localStorage.getItem('reyhaneh.unlocked')==='1';document.documentElement.classList.add(u?'unlocked':'locked')}catch(e){document.documentElement.classList.add('locked')}</script><style>html.locked #story-intro,html.locked #story,html.locked .journey-nav,html.locked #sound-toggle{visibility:hidden!important}</style>
 <link rel="icon" href="assets/icons.svg" type="image/svg+xml">
 <link rel="preload" href="assets/vazirmatn.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/naskh.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="stylesheet" href="experience.css?v=20261019-12">
-<script defer src="content.js?v=20261019-12"></script><script defer src="experience.js?v=20261019-12"></script>
+<link rel="stylesheet" href="experience.css?v=20261019-13">
+<script defer src="content.js?v=20261019-13"></script><script defer src="experience.js?v=20261019-13"></script>
 </head><body class="intro-visible">
 <div id="gate-lock" role="dialog" aria-modal="true" aria-labelledby="gate-title">
  <div class="gate-card">
   <span class="gate-heart"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#Heart"></use></svg></span>
   <h2 id="gate-title">این دنیا، فقط برای یک نفره</h2>
   <p class="gate-sub">اگه اون نفری، رمز رو بزن و بیا تو</p>
-  <form id="gate-form" autocomplete="off">
+  <form id="gate-form" autocomplete="off" onsubmit="return false">
    <input id="gate-input" type="password" inputmode="numeric" autocomplete="off" placeholder="رمز" aria-label="رمز ورود" dir="ltr">
    <button class="btn ivory" type="submit">بازش کن</button>
   </form>
   <p class="gate-error" id="gate-error" role="alert" hidden>این رمز نیست؛ دوباره تلاش کن</p>
  </div>
 </div>
+<script>
+/* Gate runs immediately and independently, before any story content is seen. */
+(function(){var gate=document.getElementById('gate-lock');if(!gate)return;var root=document.documentElement;
+if(root.classList.contains('unlocked')){gate.remove();return}
+var SHA='e8bd7957a6e9cdcbccec9465f0f1557c33beee621bd1c708b9040559dd57100e',FNV=722053551;
+function norm(s){return s.replace(/[۰-۹]/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)}).replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)}).replace(/\s+/g,'')}
+function fnv(s){var h=0x811c9dc5;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0}return h}
+function open(){try{localStorage.setItem('reyhaneh.unlocked','1')}catch(e){}root.classList.remove('locked');root.classList.add('unlocked');gate.classList.add('leaving');setTimeout(function(){gate.remove()},560)}
+var form=document.getElementById('gate-form'),input=document.getElementById('gate-input'),error=document.getElementById('gate-error');
+form.addEventListener('submit',function(e){e.preventDefault();var v=norm(input.value);if(!v)return;
+function done(ok){if(ok)open();else{error.hidden=false;gate.classList.remove('shake');void gate.offsetWidth;gate.classList.add('shake');input.select()}}
+if(window.crypto&&crypto.subtle&&crypto.subtle.digest){crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)).then(function(buf){done([].map.call(new Uint8Array(buf),function(b){return b.toString(16).padStart(2,'0')}).join('')===SHA||fnv(v)===FNV)}).catch(function(){done(fnv(v)===FNV)})}
+else done(fnv(v)===FNV)});
+setTimeout(function(){try{input.focus({preventScroll:true})}catch(e){}},450);
+})();
+</script>
 <div id="story-intro" role="dialog" aria-modal="true" aria-labelledby="intro-title">
  <div class="intro-backdrop" aria-hidden="true"></div><div class="intro-content">
  <p class="overline">برای ریحانه، از طرف حسین</p>
